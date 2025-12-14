@@ -23,12 +23,12 @@
         "secrets": [
           {
             "appId": "3X",
-            "secret": "3x_game_secret_dev",
+            "secret": "Q!w2e3r4t5",
             "active": true
           },
           {
             "appId": "4F",
-            "secret": "4f_game_secret_dev",
+            "secret": "Q!w2e3r4t5",
             "active": true
           }
         ]
@@ -57,12 +57,12 @@
         "secrets": [
           {
             "appId": "3X",
-            "secret": "3x_game_secret_prod_CHANGE_ME",
+            "secret": "Q!w2e3r4t5",
             "active": true
           },
           {
             "appId": "4F",
-            "secret": "4f_game_secret_prod_CHANGE_ME",
+            "secret": "Q!w2e3r4t5",
             "active": true
           }
         ]

@@ -1,0 +1,476 @@
+{
+  "info": {
+    "name": "MasterConfig API - Bearer Token Auth",
+    "description": "Complete API collection for MasterConfig service with Bearer token authentication compatible with handleTokenAuth.verifyGameToken.\n\n## Authentication Strategy\n- **Type**: Bearer Token (RFC 6750)\n- **Token Format**: {base64url_payload}.{hex_signature}\n- **Header**: Authorization: Bearer {token}\n- **Required Fields**: uid, rid, app_id, server_id, ts\n- **Signature**: HMAC-SHA256 hex-encoded\n\n## Setup Instructions\n1. Import the environment file: `MasterConfig_Dev.postman_environment.json`\n2. Set your environment variables (app_id, secret, uid, etc.)\n3. The pre-request script will automatically generate and attach Bearer tokens to requests\n\n## Token Expiration\n- Dev: 300 seconds (5 minutes)\n- Clock skew tolerance: 30 seconds\n- Future time allowance: 10 seconds",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "masterconfig-team"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global Pre-request Script for Bearer Token Authentication",
+          "// Compatible with handleTokenAuth.verifyGameToken in auth.go",
+          "// Token Format: {base64url_payload}.{hex_signature}",
+          "",
+          "function base64UrlEncode(wordArray) {",
+          "    // Convert WordArray to Base64",
+          "    let base64 = CryptoJS.enc.Base64.stringify(wordArray);",
+          "    // Convert Base64 to Base64URL (RFC 4648)",
+          "    return base64",
+          "        .replace(/\\+/g, '-')",
+          "        .replace(/\\//g, '_')",
+          "        .replace(/=/g, '');",
+          "}",
+          "",
+          "function generateBearerToken() {",
+          "    // Get environment variables",
+          "    const appId = pm.environment.get('app_id');",
+          "    const secret = pm.environment.get('secret');",
+          "    const uid = pm.environment.get('uid') || 'test_user_001';",
+          "    const rid = pm.environment.get('rid') || `req_${Date.now()}`;",
+          "    const serverId = pm.environment.get('server_id') || 'server_01';",
+          "    ",
+          "    if (!appId || !secret) {",
+          "        console.error('Missing required environment variables: app_id or secret');",
+          "        return null;",
+          "    }",
+          "    ",
+          "    // Create timestamp (current Unix time in seconds)",
+          "    const ts = Math.floor(Date.now() / 1000);",
+          "    ",
+          "    // Build token payload (must match GameTokenPayload struct)",
+          "    const payload = {",
+          "        uid: uid,",
+          "        rid: rid,",
+          "        app_id: appId,",
+          "        server_id: serverId,",
+          "        ts: ts",
+          "    };",
+          "    ",
+          "    // Convert payload to JSON string (compact, no whitespace)",
+          "    const payloadJson = JSON.stringify(payload);",
+          "    ",
+          "    // Base64URL encode the payload (RFC 4648)",
+          "    const payloadWordArray = CryptoJS.enc.Utf8.parse(payloadJson);",
+          "    const payloadBase64Url = base64UrlEncode(payloadWordArray);",
+          "    ",
+          "    // Compute HMAC-SHA256 signature on the JSON payload",
+          "    const signatureHex = CryptoJS.HmacSHA256(payloadJson, secret).toString(CryptoJS.enc.Hex);",
+          "    ",
+          "    // Combine into final token format: {base64url_payload}.{hex_signature}",
+          "    const token = `${payloadBase64Url}.${signatureHex}`;",
+          "    ",
+          "    console.log('=== Bearer Token Generated ===');",
+          "    console.log('Payload:', payload);",
+          "    console.log('Payload JSON:', payloadJson);",
+          "    console.log('Base64URL Payload:', payloadBase64Url);",
+          "    console.log('HMAC-SHA256 Signature:', signatureHex);",
+          "    console.log('Final Token:', token);",
+          "    console.log('Timestamp:', ts, '(' + new Date(ts * 1000).toISOString() + ')');",
+          "    console.log('==============================');",
+          "    ",
+          "    return token;",
+          "}",
+          "",
+          "// Generate and set Bearer token",
+          "const token = generateBearerToken();",
+          "if (token) {",
+          "    pm.environment.set('bearer_token', token);",
+          "    console.log('Bearer token set successfully in environment variable: bearer_token');",
+          "} else {",
+          "    console.error('Failed to generate Bearer token');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Characters",
+      "item": [
+        {
+          "name": "Get Character by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData).to.have.property('error', null);",
+                  "    pm.expect(jsonData).to.have.property('meta');",
+                  "});",
+                  "",
+                  "pm.test('Character data is valid', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const character = jsonData.data;",
+                  "    ",
+                  "    pm.expect(character).to.have.property('character_id');",
+                  "    pm.expect(character).to.have.property('meta');",
+                  "    pm.expect(character).to.have.property('baseStats');",
+                  "    pm.expect(character.meta).to.have.property('rarity');",
+                  "    pm.expect(character.meta).to.have.property('element');",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text",
+                "description": "Bearer token for authentication (auto-generated)"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text",
+                "description": "API key for caller identification"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Version",
+                "value": "v1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/masterconfig/characters/:character_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "masterconfig", "characters", ":character_id"],
+              "variable": [
+                {
+                  "key": "character_id",
+                  "value": "char_001",
+                  "description": "Unique character identifier"
+                }
+              ]
+            },
+            "description": "Retrieves a specific character by their unique character ID.\n\n**Authentication**: Token-based (automatically generated)\n\n**Path Parameters**:\n- `character_id` (string, required): The unique identifier for the character\n\n**Response**: Returns character details including meta, base stats, growths, assets, and skill set."
+          },
+          "response": []
+        },
+        {
+          "name": "List Characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('characters');",
+                  "    pm.expect(jsonData.data).to.have.property('total_count');",
+                  "    pm.expect(jsonData.data).to.have.property('page');",
+                  "    pm.expect(jsonData.data).to.have.property('page_size');",
+                  "});",
+                  "",
+                  "pm.test('Characters array is valid', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.characters).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text",
+                "description": "Bearer token for authentication (auto-generated)"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text",
+                "description": "API key for caller identification"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Version",
+                "value": "v1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/masterconfig/characters?page=1&page_size=20&rarity={{rarity}}&element={{element}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "masterconfig", "characters"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Items per page (default: 20, max: 100)"
+                },
+                {
+                  "key": "rarity",
+                  "value": "{{rarity}}",
+                  "description": "Filter by rarity: R, SR, SSR"
+                },
+                {
+                  "key": "element",
+                  "value": "{{element}}",
+                  "description": "Filter by element: Fire, Ice, Light, Dark, Nature, Lightning, Water, Earth"
+                },
+                {
+                  "key": "gender",
+                  "value": "",
+                  "description": "Filter by gender: Male, Female, Other",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "description": "Field to sort by",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "desc",
+                  "description": "Sort order: asc or desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a paginated list of characters with optional filtering.\n\n**Authentication**: Token-based (automatically generated)\n\n**Query Parameters**:\n- `page`: Page number (default: 1)\n- `page_size`: Items per page (default: 20, max: 100)\n- `rarity`: Filter by rarity (R, SR, SSR)\n- `element`: Filter by element\n- `gender`: Filter by gender\n- `sort_by`: Field to sort by\n- `sort_order`: Sort order (asc/desc)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Character created successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('character_id');",
+                  "});",
+                  "",
+                  "// Save character_id for subsequent requests",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('last_created_character_id', jsonData.data.character_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text",
+                "description": "Bearer token for authentication (auto-generated)"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text",
+                "description": "API key for caller identification"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Version",
+                "value": "v1",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"character_id\": \"char_new_001\",\n  \"meta\": {\n    \"nameKey\": \"character.new_warrior.name\",\n    \"descriptionKey\": \"character.new_warrior.desc\",\n    \"icon\": \"assets/icons/new_warrior.png\",\n    \"model\": \"assets/models/new_warrior\",\n    \"rarity\": \"SSR\",\n    \"element\": \"Fire\",\n    \"roles\": [\"Tank\", \"DPS\"],\n    \"factions\": [\"Kingdom\"],\n    \"gender\": \"Male\",\n    \"tags\": [\"melee\", \"fire\"]\n  },\n  \"base_stats\": {\n    \"level\": 1,\n    \"maxLevel\": 100,\n    \"hp\": 1200,\n    \"atk\": 180,\n    \"def\": 95,\n    \"spd\": 55,\n    \"crit\": 0.18,\n    \"critDmg\": 2.2,\n    \"accuracy\": 0.96,\n    \"evasion\": 0.12,\n    \"effectRes\": 0.25\n  },\n  \"growths\": {\n    \"base\": \"growth_curve_ssr_1\",\n    \"assension\": \"ascension_curve_ssr_1\"\n  },\n  \"assets\": {\n    \"prefab\": \"assets/prefabs/new_warrior\",\n    \"animations\": \"assets/animations/new_warrior\",\n    \"portrait\": \"assets/portraits/new_warrior.png\",\n    \"skill_vfx\": \"assets/vfx/skills/warrior\"\n  },\n  \"skill_set\": [\"skill_101\", \"skill_102\", \"skill_103\", \"skill_104\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/masterconfig/characters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "masterconfig", "characters"]
+            },
+            "description": "Creates a new character in the master configuration.\n\n**Authentication**: Token-based (automatically generated)\n\n**Request Body**: Complete character definition including meta, base_stats, growths, assets, and skill_set.\n\n**Validation**:\n- `character_id` must be unique\n- `rarity` must be one of: R, SR, SSR\n- `element` must be valid element type\n- All required fields must be provided"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Character updated successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('updated_at');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text",
+                "description": "Bearer token for authentication (auto-generated)"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text",
+                "description": "API key for caller identification"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Version",
+                "value": "v1",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meta\": {\n    \"rarity\": \"SSR\",\n    \"element\": \"Lightning\",\n    \"tags\": [\"melee\", \"lightning\", \"updated\"]\n  },\n  \"base_stats\": {\n    \"hp\": 1300,\n    \"atk\": 190,\n    \"def\": 100\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/masterconfig/characters/:character_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "masterconfig", "characters", ":character_id"],
+              "variable": [
+                {
+                  "key": "character_id",
+                  "value": "char_001",
+                  "description": "Character ID to update"
+                }
+              ]
+            },
+            "description": "Updates an existing character. Only provided fields will be updated.\n\n**Authentication**: Token-based (automatically generated)\n\n**Path Parameters**:\n- `character_id` (string, required): The character to update\n\n**Request Body**: Partial character data. All fields are optional.\n\n**Response**: Returns the updated character object."
+          },
+          "response": []
+        }
+      ],
+      "description": "Character management endpoints for the MasterConfig service. All endpoints require token-based authentication.",
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "Health & Utility",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Health check endpoint. Does not require authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/metrics",
+              "host": ["{{base_url}}"],
+              "path": ["metrics"]
+            },
+            "description": "Prometheus metrics endpoint. Does not require authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Utility endpoints that do not require authentication."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4002",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    }
+  ]
+}

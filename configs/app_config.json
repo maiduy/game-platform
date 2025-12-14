@@ -126,8 +126,8 @@
     "routes": {
       "masterconfig": {
         "auth": {
-          "enabled": false,
-          "strategy": "apikey",
+          "enabled": true,
+          "strategy": "token",
           "required_roles": ["access"]
         },
         "validation": {
