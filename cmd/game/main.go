@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	route "game-platform/internal/services/masterconfig/api/http"
 	"game-platform/internal/platform/app"
 	"game-platform/internal/platform/server"
 )
@@ -28,14 +27,18 @@ func main() {
 	defer application.Close()
 
 	// Get port from environment
-	port := os.Getenv("MASTERCONFIG_PORT")
+	port := os.Getenv("GAME_PORT")
 	if port == "" {
 		port = "4002"
 	}
 
-	// Create server with masterconfig routes
-	srv := server.NewServer(application, port, "micro-masterconfig-service", func(router *gin.Engine, app *app.App) {
-		route.InitMasterConfigRoutes(app.Logger, app.MongoConn, router, app.DynamicConfig)
+	// Create server with centralized routing
+	srv := server.NewServer(application, port, "game-platform", func(router *gin.Engine, app *app.App) {
+		server.InitializeRoutes(router, server.RouterConfig{
+			Logger:        app.Logger,
+			MongoConn:     app.MongoConn,
+			DynamicConfig: app.DynamicConfig,
+		})
 	})
 
 	// Start server in a goroutine

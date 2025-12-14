@@ -13,5 +13,6 @@ README-leaderboard-api.md
 .multiclaude/
 CLAUDE.md
 design/
-!internal/server/
+!internal/platform/server/
 *.log
+docs/
