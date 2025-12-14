@@ -1,0 +1,17 @@
+.vscode
+__debug*
+main
+.env
+.cursorrules
+GameDesign.md
+bin/
+mocks
+*_test.go
+README-leaderboard-api.md
+*tests.md
+postman
+.claude/
+.multiclaude/
+CLAUDE.md
+design/
+!internal/server/
