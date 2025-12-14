@@ -124,7 +124,7 @@
       "skip_paths": ["/health", "/docs", "/metrics", "/internal"]
     },
     "routes": {
-      "masterconfig": {
+      "game": {
         "auth": {
           "enabled": true,
           "strategy": "token",

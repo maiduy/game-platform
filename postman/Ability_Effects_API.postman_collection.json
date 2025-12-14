@@ -1,0 +1,448 @@
+{
+  "info": {
+    "name": "Ability Effects API - Bearer Token Auth",
+    "description": "Complete API collection for Game Ability & Effect system with Bearer token authentication.\n\n## Feature Overview\nThe Game Ability & Effect API provides a standardized, data-driven system for managing gameplay effects including:\n- Buffs / Debuffs\n- Damage-over-Time (DoT) / Heal-over-Time (HoT)\n- Shields & Stat Modifiers\n- Status Effects & Passive Effects\n\n## Authentication Strategy\n- **Type**: Bearer Token (RFC 6750)\n- **Token Format**: {base64url_payload}.{hex_signature}\n- **Header**: Authorization: Bearer {token}\n- **Required Fields**: uid, rid, app_id, server_id, ts\n- **Signature**: HMAC-SHA256 hex-encoded\n\n## Setup Instructions\n1. Import the environment file: `MasterConfig_Dev.postman_environment.json`\n2. Set your environment variables (app_id, secret, uid, etc.)\n3. The pre-request script will automatically generate and attach Bearer tokens to requests\n\n## API Endpoints\n- POST /api/v1/ability/effects - Create effect configuration\n- GET /api/v1/ability/effects - List effects (paginated, filterable)\n- GET /api/v1/ability/effects/:id - Get effect by ID\n- PUT /api/v1/ability/effects/:id - Update effect configuration\n- DELETE /api/v1/ability/effects/:id - Delete effect\n\n## Effect Categories\n- Buff, Debuff, DamageOverTime, HealOverTime, Shield, StatusEffect, NegativeEffect, Passive\n\n## Duration Policies\n- 0: Instant (applied once, no duration)\n- 1: Duration (active for fixed time)\n- 2: Persistent (active until removed)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "ability-team"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global Pre-request Script for Bearer Token Authentication",
+          "// Compatible with handleTokenAuth.verifyGameToken in auth.go",
+          "// Token Format: {base64url_payload}.{hex_signature}",
+          "",
+          "function base64UrlEncode(wordArray) {",
+          "    let base64 = CryptoJS.enc.Base64.stringify(wordArray);",
+          "    return base64",
+          "        .replace(/\\+/g, '-')",
+          "        .replace(/\\//g, '_')",
+          "        .replace(/=/g, '');",
+          "}",
+          "",
+          "function generateBearerToken() {",
+          "    const appId = pm.environment.get('app_id');",
+          "    const secret = pm.environment.get('secret');",
+          "    const uid = pm.environment.get('uid') || 'test_user_001';",
+          "    const rid = pm.environment.get('rid') || `req_${Date.now()}`;",
+          "    const serverId = pm.environment.get('server_id') || 'server_01';",
+          "    ",
+          "    if (!appId || !secret) {",
+          "        console.error('Missing required environment variables: app_id or secret');",
+          "        return null;",
+          "    }",
+          "    ",
+          "    const ts = Math.floor(Date.now() / 1000);",
+          "    ",
+          "    const payload = {",
+          "        uid: uid,",
+          "        rid: rid,",
+          "        app_id: appId,",
+          "        server_id: serverId,",
+          "        ts: ts",
+          "    };",
+          "    ",
+          "    const payloadJson = JSON.stringify(payload);",
+          "    const payloadWordArray = CryptoJS.enc.Utf8.parse(payloadJson);",
+          "    const payloadBase64Url = base64UrlEncode(payloadWordArray);",
+          "    const signatureHex = CryptoJS.HmacSHA256(payloadJson, secret).toString(CryptoJS.enc.Hex);",
+          "    const token = `${payloadBase64Url}.${signatureHex}`;",
+          "    ",
+          "    console.log('=== Bearer Token Generated ===');",
+          "    console.log('Final Token:', token);",
+          "    console.log('==============================');",
+          "    ",
+          "    return token;",
+          "}",
+          "",
+          "const token = generateBearerToken();",
+          "if (token) {",
+          "    pm.environment.set('bearer_token', token);",
+          "    console.log('Bearer token set successfully');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Effects",
+      "item": [
+        {
+          "name": "Create Effect - Fire DoT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_fireball_dot\",\n  \"category\": \"DamageOverTime\",\n  \"name\": \"Fireball Burn\",\n  \"order\": 100,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 5.0,\n  \"interval\": 1.0,\n  \"stacks\": 3,\n  \"tags\": [\"fire\", \"dot\", \"magical\"],\n  \"modifiers\": [\n    {\n      \"name\": \"Attack\",\n      \"flat\": 50.0,\n      \"percent\": 0.0\n    }\n  ],\n  \"metadata\": {\n    \"vfx\": \"vfx_burning_loop\",\n    \"sfx\": \"sfx_fire_burn\",\n    \"tagsToApply\": [\"Burn\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create a new Fire DoT effect configuration with damage over time mechanics."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Effect - Ice Slow Debuff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_ice_slow\",\n  \"category\": \"Debuff\",\n  \"name\": \"Frost Slow\",\n  \"order\": 50,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 4.0,\n  \"interval\": 0,\n  \"stacks\": 2,\n  \"tags\": [\"ice\", \"slow\", \"control\"],\n  \"modifiers\": [\n    {\n      \"name\": \"Speed\",\n      \"flat\": 0,\n      \"percent\": -0.3\n    }\n  ],\n  \"metadata\": {\n    \"vfx\": \"vfx_frost_aura\",\n    \"sfx\": \"sfx_ice_freeze\",\n    \"tagsToApply\": [\"Slowed\", \"Frozen\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create a new Ice Slow debuff that reduces movement speed by 30%."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Effect - Stun",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_stun\",\n  \"category\": \"NegativeEffect\",\n  \"name\": \"Stun\",\n  \"order\": 10,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 2.0,\n  \"interval\": 0,\n  \"stacks\": 1,\n  \"tags\": [\"control\", \"stun\"],\n  \"modifiers\": [],\n  \"metadata\": {\n    \"vfx\": \"vfx_stun_stars\",\n    \"sfx\": \"sfx_stun_impact\",\n    \"tagsToApply\": [\"Stunned\", \"Disabled\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create a Stun effect that disables the target for 2 seconds."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Effect - Attack Buff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_attack_buff\",\n  \"category\": \"Buff\",\n  \"name\": \"Attack Power Up\",\n  \"order\": 75,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 10.0,\n  \"interval\": 0,\n  \"stacks\": 5,\n  \"tags\": [\"buff\", \"attack\", \"power\"],\n  \"modifiers\": [\n    {\n      \"name\": \"Attack\",\n      \"flat\": 100.0,\n      \"percent\": 0.2\n    }\n  ],\n  \"metadata\": {\n    \"vfx\": \"vfx_attack_aura\",\n    \"sfx\": \"sfx_buff_power\",\n    \"tagsToApply\": [\"Empowered\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create an Attack buff that increases attack by +100 flat and +20%."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Effect - Shield",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_shield_barrier\",\n  \"category\": \"Shield\",\n  \"name\": \"Magic Shield\",\n  \"order\": 90,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 8.0,\n  \"interval\": 0,\n  \"stacks\": 1,\n  \"tags\": [\"shield\", \"protection\", \"magic\"],\n  \"modifiers\": [\n    {\n      \"name\": \"Shield\",\n      \"flat\": 500.0,\n      \"percent\": 0\n    }\n  ],\n  \"metadata\": {\n    \"vfx\": \"vfx_shield_bubble\",\n    \"sfx\": \"sfx_shield_activate\",\n    \"tagsToApply\": [\"Shielded\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create a Shield effect that absorbs 500 damage for 8 seconds."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Effect - Heal over Time",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectId\": \"effect_regen_hot\",\n  \"category\": \"HealOverTime\",\n  \"name\": \"Regeneration\",\n  \"order\": 80,\n  \"effectType\": \"GenericEffect\",\n  \"durationPolicy\": 1,\n  \"duration\": 10.0,\n  \"interval\": 1.0,\n  \"stacks\": 3,\n  \"tags\": [\"heal\", \"regen\", \"hot\"],\n  \"modifiers\": [\n    {\n      \"name\": \"HP\",\n      \"flat\": 25.0,\n      \"percent\": 0\n    }\n  ],\n  \"metadata\": {\n    \"vfx\": \"vfx_heal_particles\",\n    \"sfx\": \"sfx_heal_tick\",\n    \"tagsToApply\": [\"Regenerating\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"]
+            },
+            "description": "Create a Heal over Time effect that restores 25 HP per second for 10 seconds."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Effects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects?page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of all effect configurations."
+          },
+          "response": []
+        },
+        {
+          "name": "List Effects - Filter by Category (Buff)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects?category=Buff&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Buff"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Filter effects by category (Buff)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Effects - Filter by Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects?tags=fire,dot&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"],
+              "query": [
+                {
+                  "key": "tags",
+                  "value": "fire,dot"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Filter effects by tags (fire, dot)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Effects - Filter by IDs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects?ids=effect_fireball_dot,effect_ice_slow,effect_stun",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects"],
+              "query": [
+                {
+                  "key": "ids",
+                  "value": "effect_fireball_dot,effect_ice_slow,effect_stun"
+                }
+              ]
+            },
+            "description": "Retrieve specific effects by their IDs (comma-separated)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Effect by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects/effect_fireball_dot",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects", "effect_fireball_dot"]
+            },
+            "description": "Retrieve a specific effect configuration by its effectId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Effect",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"duration\": 6.0,\n  \"stacks\": 5,\n  \"modifiers\": [\n    {\n      \"name\": \"Attack\",\n      \"flat\": 75.0,\n      \"percent\": 0.1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects/effect_fireball_dot",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects", "effect_fireball_dot"]
+            },
+            "description": "Update an existing effect configuration. Only provided fields will be updated."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Effect",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ability/effects/effect_test_delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ability", "effects", "effect_test_delete"]
+            },
+            "description": "Delete an effect configuration by its effectId."
+          },
+          "response": []
+        }
+      ],
+      "description": "Complete CRUD operations for Game Ability Effect configurations.\n\n**Effect Categories**: Buff, Debuff, DamageOverTime, HealOverTime, Shield, StatusEffect, NegativeEffect, Passive\n\n**Duration Policies**:\n- 0: Instant\n- 1: Duration\n- 2: Persistent\n\n**Validation Rules**:\n- effectId: Required, unique, max 50 chars, pattern ^[a-zA-Z0-9_]+$\n- duration, interval, stacks: >= 0\n- order: 0-100"
+    }
+  ]
+}

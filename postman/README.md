@@ -1,22 +1,29 @@
-# MasterConfig API - Postman Collection
+# Game Platform API - Postman Collections
 
-This directory contains Postman collection and environment files for testing the MasterConfig API with Bearer token authentication compatible with `handleTokenAuth.verifyGameToken`.
+This directory contains Postman collections and environment files for testing the Game Platform APIs with Bearer token authentication.
+
+## Available Collections
+
+- **MasterConfig API** - Character configuration and game data management
+- **Ability Effects API** - Game ability and effect system management
 
 ## Files
 
-- `MasterConfig_API.postman_collection.json` - Complete API collection with all endpoints
-- `MasterConfig_Dev.postman_environment.json` - Development environment configuration
+- `MasterConfig_API.postman_collection.json` - MasterConfig service endpoints
+- `Ability_Effects_API.postman_collection.json` - Ability & Effect service endpoints
+- `MasterConfig_Dev.postman_environment.json` - Development environment configuration (shared)
 - `test_token_generation.js` - Node.js script to test token generation
 - `README.md` - This documentation file
 
 ## Quick Start
 
-### 1. Import Collection and Environment
+### 1. Import Collections and Environment
 
 1. Open Postman
 2. Click **Import** button (top left)
-3. Drag and drop both JSON files:
+3. Drag and drop all JSON files:
    - `MasterConfig_API.postman_collection.json`
+   - `Ability_Effects_API.postman_collection.json`
    - `MasterConfig_Dev.postman_environment.json`
 4. Click **Import**
 
@@ -25,19 +32,21 @@ This directory contains Postman collection and environment files for testing the
 1. Click the environment dropdown (top right)
 2. Select **MasterConfig - Dev Environment**
 
-### 3. Start the MasterConfig Service
+### 3. Start the Game Platform Service
 
 ```bash
 cd /Users/duy.mai/Data/6.SourceCode/1.VNG/Game/DuAn-02/game-platform
 export MASTERCONFIG_PORT=4002
-go run cmd/masterconfig/main.go
+go run cmd/game/main.go
 ```
 
-### 4. Test the API
+### 4. Test the APIs
 
-The collection is now ready to use! The token authentication is handled automatically by the pre-request script.
+The collections are now ready to use! The token authentication is handled automatically by the pre-request script.
 
-**Recommended first test**: Navigate to `Characters` → `Get Character by ID` and click **Send**.
+**Recommended first tests**:
+- **MasterConfig**: Navigate to `Characters` → `Get Character by ID` and click **Send**
+- **Ability Effects**: Navigate to `Effects` → `Create Effect - Fire DoT` and click **Send**
 
 ## Authentication Strategy
 
@@ -161,7 +170,7 @@ The pre-request script generates a fresh token for every request, so you don't n
 
 ## Available Endpoints
 
-### Characters
+### MasterConfig - Characters
 
 #### 1. Get Character by ID
 ```
@@ -282,6 +291,142 @@ PUT /api/v1/masterconfig/characters/:character_id
     "atk": 190
   }
 }
+```
+
+---
+
+### Ability & Effect System - Effects
+
+#### 1. Create Effect
+```
+POST /api/v1/ability/effects
+```
+
+**Description**: Create a new effect configuration
+
+**Request Body**:
+```json
+{
+  "effectId": "effect_fireball_dot",
+  "category": "DamageOverTime",
+  "name": "Fireball Burn",
+  "order": 100,
+  "effectType": "GenericEffect",
+  "durationPolicy": 1,
+  "duration": 5.0,
+  "interval": 1.0,
+  "stacks": 3,
+  "tags": ["fire", "dot", "magical"],
+  "modifiers": [
+    {
+      "name": "Attack",
+      "flat": 50.0,
+      "percent": 0.0
+    }
+  ],
+  "metadata": {
+    "vfx": "vfx_burning_loop",
+    "sfx": "sfx_fire_burn",
+    "tagsToApply": ["Burn"]
+  }
+}
+```
+
+**Effect Categories**:
+- `Buff`, `Debuff`, `DamageOverTime`, `HealOverTime`, `Shield`, `StatusEffect`, `NegativeEffect`, `Passive`
+
+**Duration Policies**:
+- `0`: Instant (applied once, no duration)
+- `1`: Duration (active for fixed time)
+- `2`: Persistent (active until removed)
+
+**Validation Rules**:
+- `effectId`: Required, unique, max 50 chars, pattern `^[a-zA-Z0-9_]+$`
+- `duration`, `interval`, `stacks`: Must be >= 0
+- `order`: Must be 0-100
+
+---
+
+#### 2. List Effects
+```
+GET /api/v1/ability/effects
+```
+
+**Description**: Get paginated list of effects with filtering
+
+**Query Parameters**:
+- `page` (int) - Page number (default: 1)
+- `limit` (int) - Items per page (default: 50, max: 100)
+- `ids` (string) - Filter by effect IDs (comma-separated): `?ids=effect_fireball_dot,effect_ice_slow`
+- `category` (string) - Filter by category: `?category=Buff`
+- `tags` (string) - Filter by tags (comma-separated): `?tags=fire,dot`
+
+**Example**:
+```
+GET /api/v1/ability/effects?category=Buff&page=1&limit=20
+GET /api/v1/ability/effects?tags=fire,dot
+GET /api/v1/ability/effects?ids=effect_fireball_dot,effect_ice_slow,effect_stun
+```
+
+---
+
+#### 3. Get Effect by ID
+```
+GET /api/v1/ability/effects/:id
+```
+
+**Description**: Retrieve a specific effect configuration by ID
+
+**Path Parameters**:
+- `id` (string) - Effect ID (e.g., `effect_fireball_dot`)
+
+**Example**:
+```
+GET /api/v1/ability/effects/effect_fireball_dot
+```
+
+---
+
+#### 4. Update Effect
+```
+PUT /api/v1/ability/effects/:id
+```
+
+**Description**: Update an existing effect (partial update supported)
+
+**Path Parameters**:
+- `id` (string) - Effect ID to update
+
+**Request Body** (all fields optional):
+```json
+{
+  "duration": 6.0,
+  "stacks": 5,
+  "modifiers": [
+    {
+      "name": "Attack",
+      "flat": 75.0,
+      "percent": 0.1
+    }
+  ]
+}
+```
+
+---
+
+#### 5. Delete Effect
+```
+DELETE /api/v1/ability/effects/:id
+```
+
+**Description**: Delete an effect configuration
+
+**Path Parameters**:
+- `id` (string) - Effect ID to delete
+
+**Example**:
+```
+DELETE /api/v1/ability/effects/effect_test_delete
 ```
 
 ---

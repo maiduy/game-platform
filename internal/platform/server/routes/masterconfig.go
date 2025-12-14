@@ -44,7 +44,7 @@ func RegisterMasterConfigRoutes(
 // applyMasterConfigAuth applies authentication middleware to the route group
 func applyMasterConfigAuth(group *gin.RouterGroup, logger *logrus.Logger, dynamicConfig *dynamicconfig.DynamicConfig) {
 	// Check for service-specific auth config
-	if masterConfigAuthConfig, ok := dynamicConfig.Get("security.routes.masterconfig.auth"); ok {
+	if masterConfigAuthConfig, ok := dynamicConfig.Get("security.routes.game.auth"); ok {
 		if config, ok := masterConfigAuthConfig.(map[string]interface{}); ok {
 			if enabled, ok := config["enabled"].(bool); ok && enabled {
 				authConfig := buildAuthConfig(config)

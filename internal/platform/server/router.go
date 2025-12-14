@@ -22,7 +22,9 @@ func InitializeRoutes(router *gin.Engine, config RouterConfig) {
 	// Register MasterConfig routes
 	routes.RegisterMasterConfigRoutes(router, config.Logger, config.MongoConn, config.DynamicConfig)
 
+	// Register Ability routes
+	routes.RegisterAbilityRoutes(router, config.Logger, config.MongoConn, config.DynamicConfig)
+
 	// Future routes can be added here:
-	// routes.RegisterAbilityRoutes(router, config.Logger, config.MongoConn, config.DynamicConfig)
 	// routes.RegisterLeaderboardRoutes(router, config.Logger, config.MongoConn, config.DynamicConfig)
 }
