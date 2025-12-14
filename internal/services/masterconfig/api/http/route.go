@@ -9,6 +9,7 @@ import (
 	pool "game-platform/internal/platform/pools"
 	"game-platform/internal/services/masterconfig/application"
 	"game-platform/internal/services/masterconfig/repository"
+	"game-platform/internal/services/masterconfig/resolver"
 )
 
 // InitMasterConfigRoutes initializes the routes for masterconfig service
@@ -18,11 +19,11 @@ func InitMasterConfigRoutes(
 	router *gin.Engine,
 	dynamicConfig *dynamicconfig.DynamicConfig,
 ) {
-	// Initialize characters repository, service, controller, and handler
+	// Initialize characters repository, resolver, service, and handler
 	charactersRepo := repository.NewRepository(mongoConn)
-	charactersSvc := application.NewService(charactersRepo)
-	charactersController := application.NewController(logger, charactersSvc)
-	charactersHandler := NewHandler(charactersController)
+	charactersResolver := resolver.NewCharacterResolver(charactersRepo)
+	charactersService := application.NewCharacterService(logger, charactersResolver)
+	charactersHandler := NewHandler(logger, charactersService)
 
 	// Define API group for characters routes
 	charactersGroup := router.Group("/api/v1/masterconfig/characters")

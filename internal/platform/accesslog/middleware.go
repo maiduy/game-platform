@@ -19,7 +19,7 @@ import (
 
 // Config holds configuration for the access log middleware
 type Config struct {
-	Module              string // e.g., "ds.HubMicroService", "ds.HubFraudService"
+	Module              string // e.g., "game"
 	Version             string // e.g., "v1"
 	IncludeRequestBody  bool   // Whether to include request body in logs
 	IncludeResponseBody bool   // Whether to include response body in logs
@@ -459,12 +459,8 @@ func GetModuleFromEnv() string {
 		// Try to infer from service name
 		serviceName := os.Getenv("SERVICE_NAME")
 		switch serviceName {
-		case "fraud":
-			return "ds.HubFraudService"
-		case "main", "sme":
-			return "ds.HubMicroService"
 		default:
-			return "ds.HubMicroService"
+			return "game-platform"
 		}
 	}
 	return module

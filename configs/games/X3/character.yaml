@@ -1,0 +1,8 @@
+# X3 Game - Character entity key mapping configuration
+# This file defines X3-specific field name normalization for the Character entity
+
+entity: X3.character
+
+mappings:
+  # Basic identification fields (3X specific)
+  character_id: id

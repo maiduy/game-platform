@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	route "game-platform/internal/masterconfig/api/http"
+	route "game-platform/internal/services/masterconfig/api/http"
 	"game-platform/internal/platform/app"
 	"game-platform/internal/platform/server"
 )

@@ -1,0 +1,72 @@
+{
+  "environments": {
+    "dev": {
+      "apiKeys": [
+        {
+          "caller": "GAME_X3",
+          "key": "game#123",
+          "active": true
+        }
+      ],
+      "token": {
+        "enabled": true,
+        "maxAgeSec": 300,
+        "clockSkewSec": 30,
+        "allowFutureSec": 10,
+        "requiredFields": [
+          "uid",
+          "rid",
+          "app_id",
+          "server_id",
+          "ts"
+        ],
+        "secrets": [
+          {
+            "appId": "3X",
+            "secret": "3x_game_secret_dev",
+            "active": true
+          },
+          {
+            "appId": "4F",
+            "secret": "4f_game_secret_dev",
+            "active": true
+          }
+        ]
+      }
+    },
+    "production": {
+      "apiKeys": [
+        {
+          "caller": "MICRO_CORE",
+          "key": "aq34wd0frgt",
+          "active": true
+        }
+      ],
+      "token": {
+        "enabled": true,
+        "maxAgeSec": 180,
+        "clockSkewSec": 15,
+        "allowFutureSec": 5,
+        "requiredFields": [
+          "uid",
+          "rid",
+          "app_id",
+          "server_id",
+          "ts"
+        ],
+        "secrets": [
+          {
+            "appId": "3X",
+            "secret": "3x_game_secret_prod_CHANGE_ME",
+            "active": true
+          },
+          {
+            "appId": "4F",
+            "secret": "4f_game_secret_prod_CHANGE_ME",
+            "active": true
+          }
+        ]
+      }
+    }
+  }
+}

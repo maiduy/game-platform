@@ -1,0 +1,53 @@
+# MasterConfig entity key mapping configuration
+# This file defines how database field names should be normalized for Config entities
+
+entity: config
+
+mappings:
+  # Primary fields
+  config_key: configKey
+  cfg_key: configKey
+  key: configKey
+
+  config_value: configValue
+  cfg_value: configValue
+  value: configValue
+  config_data: configValue
+
+  # Version control
+  version_number: version
+  ver: version
+
+  # Environment
+  environment_name: environment
+  env: environment
+  env_name: environment
+
+  # Metadata
+  config_description: description
+  desc: description
+  config_tags: tags
+  tag_list: tags
+
+  # Timestamps
+  created_time: createdAt
+  create_time: createdAt
+  created_at_unix: createdAt
+
+  updated_time: updatedAt
+  update_time: updatedAt
+  updated_at_unix: updatedAt
+
+  # User tracking
+  created_by_user: createdBy
+  creator: createdBy
+
+  updated_by_user: updatedBy
+  updater: updatedBy
+  modifier: updatedBy
+
+  # History fields
+  change_type_name: changeType
+  changed_time: changedAt
+  change_time: changedAt
+  changed_by_user: changedBy

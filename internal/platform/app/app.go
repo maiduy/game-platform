@@ -1,8 +1,11 @@
 package app
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -37,9 +40,8 @@ func Initialize() (*App, error) {
 		log.Fatalf("Failed to initialize Snowflake node: %v", err)
 	}
 
-	// Initialize logger
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
+	// Initialize logger with file output and rotation
+	logger := initializeLogger()
 
 	// Setup Database Connection (PostgreSQL)
 	dbConn, err := pool.NewPostgresConnection()
@@ -128,4 +130,76 @@ func (a *App) Close() {
 	if a.MongoConn != nil {
 		a.MongoConn.Close()
 	}
+}
+
+// initializeLogger configures the application logger with file output and date-based rotation
+func initializeLogger() *logrus.Logger {
+	logger := logrus.New()
+
+	// Set JSON formatter for structured logging
+	logger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "level",
+			logrus.FieldKeyMsg:   "message",
+		},
+	})
+
+	// Set log level from environment or default to INFO
+	logLevel := os.Getenv("LOG_LEVEL")
+	switch logLevel {
+	case "debug":
+		logger.SetLevel(logrus.DebugLevel)
+	case "warn", "warning":
+		logger.SetLevel(logrus.WarnLevel)
+	case "error":
+		logger.SetLevel(logrus.ErrorLevel)
+	case "fatal":
+		logger.SetLevel(logrus.FatalLevel)
+	default:
+		logger.SetLevel(logrus.InfoLevel)
+	}
+
+	// Configure file output if enabled
+	enableFileLogging := os.Getenv("ENABLE_FILE_LOGGING")
+	if enableFileLogging == "true" {
+		// Get log directory from environment or use default
+		logDir := os.Getenv("LOG_DIR")
+		if logDir == "" {
+			logDir = "logs"
+		}
+
+		// Create log directory if it doesn't exist
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			log.Printf("Failed to create log directory: %v", err)
+		} else {
+			// Get log file prefix from environment or use default
+			logPrefix := os.Getenv("LOG_FILE_PREFIX")
+			if logPrefix == "" {
+				logPrefix = "app"
+			}
+
+			// Create log file with date-based name (e.g., app-2025-12-13.log)
+			currentDate := time.Now().Format("2006-01-02")
+			logFileName := fmt.Sprintf("%s-%s.log", logPrefix, currentDate)
+			logFilePath := filepath.Join(logDir, logFileName)
+
+			logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+			if err != nil {
+				log.Printf("Failed to open log file: %v", err)
+			} else {
+				// Write to both file and stdout
+				//multiWriter := io.MultiWriter(os.Stdout, logFile)
+				multiWriter := io.MultiWriter(logFile)
+				logger.SetOutput(multiWriter)
+				log.Printf("File logging enabled: %s", logFilePath)
+			}
+		}
+	} else {
+		// Default to stdout only
+		logger.SetOutput(os.Stdout)
+	}
+
+	return logger
 }

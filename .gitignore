@@ -15,3 +15,4 @@ postman
 CLAUDE.md
 design/
 !internal/server/
+*.log

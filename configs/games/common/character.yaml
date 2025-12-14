@@ -1,0 +1,79 @@
+# Character entity key mapping configuration
+# This file defines how database field names should be normalized for the Character entity
+
+entity: character
+
+mappings:
+  # Basic identification fields
+  character_id: characterId
+  char_id: characterId
+  id: characterId
+
+  # Meta fields
+  name_key: nameKey
+  display_name: displayName
+  description_key: descriptionKey
+  desc_key: descriptionKey
+
+  # Character attributes
+  icon_path: icon
+  model_path: model
+  prefab_path: prefab
+
+  # Rarity and classification
+  rarity_level: rarity
+  element_type: element
+  role_list: roles
+  faction_list: factions
+  gender_type: gender
+  tag_list: tags
+
+  # Base stats
+  base_hp: hp
+  base_atk: atk
+  base_attack: atk
+  base_def: def
+  base_defense: def
+  base_spd: spd
+  base_speed: spd
+  crit_rate: crit
+  crit_chance: crit
+  critical_rate: crit
+  crit_damage: critDmg
+  critical_damage: critDmg
+  hit_rate: accuracy
+  dodge_rate: evasion
+  resist_rate: effectRes
+  effect_resistance: effectRes
+
+  # Level progression
+  current_level: level
+  max_level_cap: maxLevel
+
+  # Growth curves
+  growth_base: base
+  growth_curve_base: base
+  base_growth: base
+  growth_ascension: assension
+  growth_curve_ascension: assension
+  ascension_growth: assension
+
+  # Assets and resources
+  asset_prefab: prefab
+  asset_animation: animations
+  asset_portrait: portrait
+  asset_skill_vfx: skillVFX
+  skill_effects: skillVFX
+
+  # Skills (skill_set is an array of skill IDs)
+  skills: skillSet
+  skill_ids: skillSet
+  skill_list: skillSet
+
+  # Timestamps
+  created_time: createdAt
+  updated_time: updatedAt
+  create_time: createdAt
+  update_time: updatedAt
+  created_by_user: createdBy
+  updated_by_user: updatedBy

@@ -1,0 +1,180 @@
+{
+  "app": {
+    "name": "micro-backend-service",
+    "version": "1.0.0",
+    "environment": "development"
+  },
+  "server": {
+    "read_timeout": 10,
+    "write_timeout": 10,
+    "idle_timeout": 30,
+    "max_header_bytes": 1048576
+  },
+  "api": {
+    "version": {
+      "current": {
+        "major": 2,
+        "minor": 1,
+        "patch": 0
+      },
+      "min_supported": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0
+      },
+      "header_name": "X-API-Version",
+      "check_url_path": true,
+      "send_deprecation_warnings": true
+    }
+  },
+  "database": {
+    "max_idle_conns": 10,
+    "max_open_conns": 100,
+    "conn_max_lifetime": 3600
+  },
+  "mysql": {
+    "max_idle_conns": 10,
+    "max_open_conns": 100,
+    "conn_max_lifetime": 3600,
+    "conn_max_idle_time": 1800,
+    "timeout": 10,
+    "read_timeout": 30,
+    "write_timeout": 30,
+    "interpolate_params": true,
+    "multi_statements": false,
+    "parse_time": true,
+    "tls_config": ""
+  },
+  "mongodb": {
+    "max_pool_size": 100,
+    "min_pool_size": 10,
+    "max_conn_idle_time": 1800,
+    "connect_timeout": 10,
+    "socket_timeout": 30,
+    "server_selection_timeout": 30,
+    "write_concern": "majority",
+    "read_preference": "secondaryPreferred",
+    "max_retries": 3,
+    "retry_interval": 500
+  },
+  "elasticsearch": {
+    "max_retries": 3,
+    "retry_interval": 500,
+    "connect_timeout": 10,
+    "request_timeout": 30,
+    "max_connections": 100,
+    "idle_connection_timeout": 300,
+    "compression_enabled": true,
+    "sniff_enabled": true,
+    "sniff_interval": 60,
+    "health_check_interval": 60,
+    "bulk_actions": 1000,
+    "bulk_size": 5242880,
+    "bulk_flush_interval": 30
+  },
+  "redis": {
+    "max_retries": 3,
+    "min_retry_backoff": 8,
+    "max_retry_backoff": 512,
+    "dial_timeout": 5,
+    "read_timeout": 3,
+    "write_timeout": 3
+  },
+  "nats": {
+    "max_reconnects": 100,
+    "reconnect_wait": 1,
+    "reconnect_buf_size": 8388608,
+    "timeout": 10,
+    "ping_interval": 10,
+    "max_pings_out": 3,
+    "drain_timeout": 30,
+    "stream_max_age": 168,
+    "stream_max_bytes": 10737418240,
+    "stream_replicas": 3,
+    "consumer_max_deliver": 5,
+    "consumer_ack_wait": 30
+  },
+  "security": {
+    "jwt_expiration": 86400,
+    "refresh_token_expiration": 604800,
+    "password_hash_cost": 10,
+    "rate_limit": {
+      "enabled": true,
+      "requests_per_minute": 100
+    },
+    "cors": {
+      "allowed_origins": ["*"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allowed_headers": ["Origin", "Content-Type", "Accept", "Authorization"],
+      "exposed_headers": ["Content-Length"],
+      "allow_credentials": true,
+      "max_age": 12
+    },
+    "request_validation": {
+      "enabled": true,
+      "validate_signature": false,
+      "validate_key": true,
+      "require_base64_encoding": false,
+      "skip_paths": ["/health", "/docs", "/metrics", "/internal"]
+    },
+    "auth": {
+      "enabled": true,
+      "strategy": "basic",
+      "secret_env_name": "API_SECRET",
+      "skip_paths": ["/health", "/docs", "/metrics", "/internal"]
+    },
+    "routes": {
+      "masterconfig": {
+        "auth": {
+          "enabled": false,
+          "strategy": "apikey",
+          "required_roles": ["access"]
+        },
+        "validation": {
+          "enabled": true,
+          "validate_signature": true,
+          "validate_key": true,
+          "require_base64_encoding": true
+        }
+      }
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  },
+  "metrics": {
+    "enabled": true,
+    "endpoint": "/metrics"
+  },
+  "service_discovery": {
+    "enabled": true,
+    "provider": "consul",
+    "consul": {
+      "address": "localhost:8500",
+      "service_name": "micro-backend-service",
+      "tags": ["api", "microservice"],
+      "health_check_interval": "10s"
+    }
+  },
+  "resilience": {
+    "circuit_breaker": {
+      "enabled": true,
+      "max_requests": 100,
+      "interval": 60,
+      "timeout": 30,
+      "error_threshold_percentage": 50
+    },
+    "retry": {
+      "enabled": true,
+      "max_retries": 3,
+      "initial_backoff": 100,
+      "max_backoff": 1000
+    }
+  },
+  "feature_flags": {
+    "new_user_flow": true,
+    "enhanced_security": true,
+    "beta_features": false
+  }
+} 
